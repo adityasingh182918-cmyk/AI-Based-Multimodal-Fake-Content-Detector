@@ -1,0 +1,29 @@
+{
+  "model_id": "distilbert/distilbert-base-uncased",
+  "model_revision": "12040accade4e8a0f71eabdb258fecc2e7e948be",
+  "initial_checkpoint": "models\\text_detector\\transformer\\distilbert_hc3_v1",
+  "model_name": "DistilBERT continued fine-tune",
+  "model_version": "distilbert_expanded_v1",
+  "max_length": 256,
+  "label2id": {
+    "HUMAN_WRITTEN": 0,
+    "AI_GENERATED": 1
+  },
+  "selected_epoch": 3,
+  "decision_thresholds": {
+    "method": "validation_quantile_abstention_api_aggregation",
+    "max_class_error_rate": 0.05,
+    "real_max_ai_score": 0.0,
+    "ai_min_ai_score": 1.0,
+    "validation_rows": 6650
+  },
+  "decision_threshold_source": "expanded validation with deployed chunk/window aggregation; test/OOD not used",
+  "inference_temperature": 2.2866704268608773,
+  "temperature_calibration": {
+    "method": "scalar temperature scaling",
+    "temperature": 2.2866704268608773,
+    "fit_split": "data\\text\\processed\\expanded_v1\\validation.jsonl",
+    "validation_only": true,
+    "deployed": true
+  }
+}

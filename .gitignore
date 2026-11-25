@@ -1,0 +1,52 @@
+# Python environments and caches
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Environment secrets (keep .env.example tracked)
+.env
+.env.*
+!.env.example
+
+# Node and frontend builds
+node_modules/
+frontend/dist/
+dist/
+build/
+
+# Models, checkpoints, and downloaded/generated data
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+*.h5
+*.keras
+/data/*
+!/data/image/
+/data/image/*
+!/data/image/README.md
+
+# Logs and temporary output
+*.log
+*.tmp
+logs/
+/training/reports/
+tmp/
+temp/
+
+# IDE and operating system files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+Desktop.ini

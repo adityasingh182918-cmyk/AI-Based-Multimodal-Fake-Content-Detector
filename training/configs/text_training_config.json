@@ -1,0 +1,15 @@
+{
+  "dataset": "Hello-SimpleAI/HC3",
+  "revision": "4d0ff18143b5a7e1b1e79beb540c04549d1e59d3",
+  "sources": ["reddit_eli5", "wiki_csai"],
+  "seed": 42,
+  "split_ratios": {"train": 0.7, "validation": 0.15, "test": 0.15},
+  "group_key": "source + question id",
+  "feature_models": {
+    "word": {"analyzer": "word", "ngram_range": [1, 2], "max_features": 150000, "sublinear_tf": true},
+    "character": {"analyzer": "char_wb", "ngram_range": [3, 5], "max_features": 200000, "sublinear_tf": true}
+  },
+  "selection_metric": "validation macro F1",
+  "calibration": "CalibratedClassifierCV for LinearSVC; validation quantile abstention thresholds",
+  "note": "Baseline configuration only; does not describe transformer fine-tuning."
+}

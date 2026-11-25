@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Phase 3 Multimodal Analysis</title>
+  <style>
+    :root { color-scheme: light; --ink:#192436; --muted:#58677b; --line:#d8e0ea; --accent:#325cbd; --panel:#fff; --bg:#f3f6fb; }
+    * { box-sizing:border-box; } body { margin:0; background:var(--bg); color:var(--ink); font:16px/1.5 system-ui,Segoe UI,sans-serif; }
+    main { max-width:980px; margin:auto; padding:32px 18px 60px; } h1 { margin:0 0 6px; font-size:clamp(1.7rem,4vw,2.4rem); }
+    p { color:var(--muted); } .notice { padding:14px 16px; border:1px solid #d5b66a; border-radius:12px; background:#fff8e5; color:#574515; }
+    .grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; margin:22px 0; }
+    section,.result { background:var(--panel); border:1px solid var(--line); border-radius:14px; padding:18px; }
+    label { display:block; font-weight:650; margin:0 0 8px; } input[type=file],textarea { width:100%; }
+    input[type=file] { padding:12px; border:1px solid var(--line); border-radius:9px; background:#fff; }
+    input[type=file]:focus-visible,textarea:focus-visible,button:focus-visible { outline:3px solid #92b5ff; outline-offset:2px; }
+    textarea { min-height:260px; resize:vertical; padding:12px; border:1px solid var(--line); border-radius:9px; font:inherit; }
+    .preview { max-width:100%; max-height:320px; display:block; margin-top:12px; border-radius:8px; }
+    .actions { display:flex; gap:14px; align-items:center; flex-wrap:wrap; } button { border:0; border-radius:9px; padding:12px 18px; background:var(--accent); color:#fff; font-weight:700; cursor:pointer; }
+    button:disabled { opacity:.6; cursor:wait; } #status { min-height:1.5em; color:var(--muted); }
+    .results { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:14px; margin-top:20px; }
+    .result h2 { font-size:1.05rem; margin:0 0 10px; } pre { white-space:pre-wrap; overflow-wrap:anywhere; font:13px/1.5 ui-monospace,Consolas,monospace; margin:0; }
+    @media(max-width:720px) { .grid,.results { grid-template-columns:1fr; } main { padding-top:22px; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Image + Text Analysis</h1>
+  <p>Phase 3 runs frozen image and text copies and a trainable fusion model when a paired-data checkpoint is available.</p>
+  <div class="notice" id="modelNotice" role="status">Checking Phase 3 model status…</div>
+  <div class="grid">
+    <section>
+      <label for="imageFile">Image to analyze</label>
+      <input id="imageFile" type="file" accept="image/*">
+      <img id="preview" class="preview" alt="Selected image preview" hidden>
+    </section>
+    <section>
+      <label for="textInput">Related caption or text</label>
+      <textarea id="textInput" maxlength="50000" placeholder="Paste the text that accompanies the image"></textarea>
+      <p><span id="wordCount">0</span> words · <span id="charCount">0</span>/50,000 characters</p>
+    </section>
+  </div>
+  <div class="actions"><button id="analyze" type="button">Analyze image and text</button><span id="status" aria-live="polite"></span></div>
+  <div class="results" aria-live="polite">
+    <section class="result"><h2>Copied image model</h2><pre id="imageResult">No result yet.</pre></section>
+    <section class="result"><h2>Copied text model</h2><pre id="textResult">No result yet.</pre></section>
+    <section class="result"><h2>Phase 3 fusion</h2><pre id="fusionResult">No result yet.</pre></section>
+  </div>
+  <p>Image and text outputs are independent. Fusion is a separate learned prediction, not an average of modality scores. Scores are estimates and do not prove authenticity.</p>
+</main>
+<script>
+  const $ = id => document.getElementById(id);
+  const file = $('imageFile'), text = $('textInput'), button = $('analyze');
+  file.addEventListener('change', () => { const selected = file.files[0]; const preview = $('preview'); if (!selected) { preview.hidden = true; preview.removeAttribute('src'); return; } preview.src = URL.createObjectURL(selected); preview.hidden = false; });
+  text.addEventListener('input', () => { $('charCount').textContent = text.value.length; $('wordCount').textContent = text.value.trim() ? text.value.trim().split(/\s+/).length : 0; });
+  async function jsonResponse(response) { const body = await response.json(); if (!response.ok) throw new Error(body.detail || `HTTP ${response.status}`); return body; }
+  $('modelNotice').textContent = 'Loading model status…';
+  fetch('/phase3/status').then(jsonResponse).then(info => { $('modelNotice').textContent = info.message; }).catch(error => { $('modelNotice').textContent = `Status unavailable: ${error.message}`; });
+  button.addEventListener('click', async () => {
+    $('imageResult').textContent = $('textResult').textContent = $('fusionResult').textContent = 'Waiting…';
+    const selected = file.files[0], value = text.value;
+    if (!selected || !value.trim()) { $('status').textContent = 'Choose an image and enter related text.'; return; }
+    if (value.length < 40 || value.trim().split(/\s+/).length < 5) { $('status').textContent = 'Text must contain at least 40 characters and 5 words.'; return; }
+    button.disabled = true; $('status').textContent = 'Analyzing…';
+    try {
+      const imageForm = new FormData(); imageForm.append('file', selected);
+      const textRequest = fetch('/api/v1/predict/text', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({text:value})}).then(jsonResponse);
+      const imageRequest = fetch('/api/v1/predict/image', {method:'POST', body:imageForm}).then(jsonResponse);
+      const [imageOut, textOut] = await Promise.all([imageRequest, textRequest]);
+      $('imageResult').textContent = JSON.stringify(imageOut, null, 2); $('textResult').textContent = JSON.stringify(textOut, null, 2);
+      const pair = new FormData(); pair.append('file', selected); pair.append('text', value);
+      const fusionOut = await fetch('/api/v1/predict/multimodal', {method:'POST', body:pair}).then(jsonResponse);
+      $('fusionResult').textContent = JSON.stringify(fusionOut, null, 2); $('status').textContent = 'Analysis complete.';
+    } catch (error) {
+      $('fusionResult').textContent = error.message;
+      if ($('imageResult').textContent === 'Waiting…') $('imageResult').textContent = 'Image request failed.';
+      if ($('textResult').textContent === 'Waiting…') $('textResult').textContent = 'Text request failed.';
+      $('status').textContent = 'One or more requests could not be completed.';
+    } finally { button.disabled = false; }
+  });
+</script>
+</body>
+</html>

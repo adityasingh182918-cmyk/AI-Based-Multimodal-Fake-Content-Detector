@@ -1,0 +1,136 @@
+{
+  "model_name": "Expanded word/character TF-IDF linear_svm",
+  "model_version": "svm_expanded_v1",
+  "model_type": "linear_svm",
+  "checkpoint": "models\\text_detector\\svm_expanded_v1.joblib",
+  "dataset_dir": "data\\text\\processed\\expanded_v1",
+  "seed": 42,
+  "label2id": {
+    "HUMAN_WRITTEN": 0,
+    "AI_GENERATED": 1
+  },
+  "feature_kind": "word_char",
+  "classifier_kind": "linear_svm",
+  "C": 0.5,
+  "word_tfidf": {
+    "ngram_range": [
+      1,
+      2
+    ],
+    "max_features": 150000,
+    "min_df": 2
+  },
+  "char_tfidf": {
+    "analyzer": "char_wb",
+    "ngram_range": [
+      3,
+      5
+    ],
+    "max_features": 200000,
+    "min_df": 2
+  },
+  "train_rows": 26954,
+  "train_class_counts": {
+    "HUMAN_WRITTEN": 13224,
+    "AI_GENERATED": 13730
+  },
+  "validation_rows": 6650,
+  "validation_class_counts": {
+    "AI_GENERATED": 3398,
+    "HUMAN_WRITTEN": 3252
+  },
+  "validation_metrics": {
+    "accuracy": 0.7691729323308271,
+    "macro_f1": 0.7688892131039675,
+    "validation_rows": 6650,
+    "fit_seconds": 6.995228200015845
+  },
+  "decision_thresholds": {
+    "method": "validation_quantile_abstention_api_aggregation",
+    "max_class_error_rate": 0.05,
+    "real_max_ai_score": 0.0,
+    "ai_min_ai_score": 1.0,
+    "validation_rows": 6650
+  },
+  "selection_metric": "expanded validation macro-F1; independent test/OOD data not used",
+  "selected_svm_candidate": "word_char_svm_c05",
+  "best_logistic_validation_candidate": "word_char_logistic",
+  "candidate_results": [
+    {
+      "name": "word_logistic",
+      "feature_kind": "word",
+      "classifier_kind": "logistic",
+      "C": 2.0,
+      "metrics": {
+        "accuracy": 0.7485714285714286,
+        "macro_f1": 0.7480857206373321,
+        "validation_rows": 6650,
+        "fit_seconds": 1.390157999994699
+      }
+    },
+    {
+      "name": "char_logistic",
+      "feature_kind": "char",
+      "classifier_kind": "logistic",
+      "C": 2.0,
+      "metrics": {
+        "accuracy": 0.7464661654135338,
+        "macro_f1": 0.7464455244250762,
+        "validation_rows": 6650,
+        "fit_seconds": 6.162853299989365
+      }
+    },
+    {
+      "name": "word_char_logistic",
+      "feature_kind": "word_char",
+      "classifier_kind": "logistic",
+      "C": 2.0,
+      "metrics": {
+        "accuracy": 0.7670676691729323,
+        "macro_f1": 0.7667300270745212,
+        "validation_rows": 6650,
+        "fit_seconds": 3.7255240000085905
+      }
+    },
+    {
+      "name": "word_char_svm_c05",
+      "feature_kind": "word_char",
+      "classifier_kind": "linear_svm",
+      "C": 0.5,
+      "metrics": {
+        "accuracy": 0.7691729323308271,
+        "macro_f1": 0.7688892131039675,
+        "validation_rows": 6650,
+        "fit_seconds": 6.995228200015845
+      }
+    },
+    {
+      "name": "word_char_svm_c1",
+      "feature_kind": "word_char",
+      "classifier_kind": "linear_svm",
+      "C": 1.0,
+      "metrics": {
+        "accuracy": 0.7681203007518796,
+        "macro_f1": 0.7678025516244922,
+        "validation_rows": 6650,
+        "fit_seconds": 9.51876330000232
+      }
+    },
+    {
+      "name": "word_char_svm_c2",
+      "feature_kind": "word_char",
+      "classifier_kind": "linear_svm",
+      "C": 2.0,
+      "metrics": {
+        "accuracy": 0.7657142857142857,
+        "macro_f1": 0.7653500523261207,
+        "validation_rows": 6650,
+        "fit_seconds": 15.66384160000598
+      }
+    }
+  ],
+  "total_training_seconds": 116.42258529999526,
+  "decision_threshold_source": "expanded validation with deployed chunk/window aggregation; test/OOD not used",
+  "inference_temperature": 1.0,
+  "temperature_calibration": null
+}

@@ -1,0 +1,33 @@
+{
+  "architecture": "resnet18",
+  "class_names": [
+    "REAL",
+    "AI_GENERATED"
+  ],
+  "image_size": 224,
+  "mean": [
+    0.485,
+    0.456,
+    0.406
+  ],
+  "std": [
+    0.229,
+    0.224,
+    0.225
+  ],
+  "pretrained_initialization": "torchvision ResNet18_Weights.DEFAULT",
+  "dataset_identifier": "dragonintelligence/CIFAKE-image-dataset",
+  "dataset_revision": "6eebd6090fe3c0d9d44f899a25f0a34e3c2dad31",
+  "seed": 42,
+  "epochs_completed": 5,
+  "best_checkpoint_epoch": 5,
+  "best_validation_metric": {
+    "name": "validation_loss",
+    "value": 0.22546518981456756
+  },
+  "validation_accuracy": 0.93,
+  "training_timestamp_utc": "2026-10-28T03:07:56.037475+00:00",
+  "run_id": "20261028T030756037427Z",
+  "training_device": "cuda",
+  "gpu_name": "NVIDIA GeForce RTX 4050 Laptop GPU"
+}

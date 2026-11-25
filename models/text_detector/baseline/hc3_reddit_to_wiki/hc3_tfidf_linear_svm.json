@@ -1,0 +1,9 @@
+{
+  "decision_thresholds": {
+    "method": "validation_quantile_abstention",
+    "max_class_error_rate": 0.05,
+    "real_max_ai_score": 0.10178789578999121,
+    "ai_min_ai_score": 0.9413665385284796,
+    "validation_rows": 279
+  }
+}

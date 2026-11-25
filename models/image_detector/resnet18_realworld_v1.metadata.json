@@ -1,0 +1,34 @@
+{
+  "architecture": "resnet18",
+  "class_names": [
+    "REAL",
+    "AI_GENERATED"
+  ],
+  "image_size": 224,
+  "resize_mode": "pad",
+  "mean": [
+    0.485,
+    0.456,
+    0.406
+  ],
+  "std": [
+    0.229,
+    0.224,
+    0.225
+  ],
+  "pretrained_initialization": "C:\\Users\\Lenovo\\Desktop\\imad_project\\models\\image_detector\\resnet18_cifake_aug_v1_calibrated_strict.pt",
+  "dataset_identifier": "CIFAKE plus four user-labelled REAL supplemental photos",
+  "dataset_revision": "not recorded in manifest metadata",
+  "seed": 42,
+  "epochs_completed": 3,
+  "best_checkpoint_epoch": 1,
+  "best_validation_metric": {
+    "name": "validation_loss",
+    "value": 0.13032251536846162
+  },
+  "validation_accuracy": 0.965,
+  "training_timestamp_utc": "2026-11-24T18:43:55.405356+00:00",
+  "run_id": "20261124T184355405329Z",
+  "training_device": "cuda",
+  "gpu_name": "NVIDIA GeForce RTX 4050 Laptop GPU"
+}

@@ -1,0 +1,12 @@
+# Phase 3 artifacts are local unless explicitly reviewed and added.
+data/**
+!data/README.md
+models/**
+!models/README.md
+backups/**
+reports/*.json
+reports/*.csv
+reports/*.png
+reports/*.pt
+reports/*.npz
+reports/*.npy

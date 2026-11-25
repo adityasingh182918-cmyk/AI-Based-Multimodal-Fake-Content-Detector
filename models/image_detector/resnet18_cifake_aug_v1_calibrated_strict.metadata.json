@@ -1,0 +1,69 @@
+{
+  "architecture": "resnet18",
+  "class_names": [
+    "REAL",
+    "AI_GENERATED"
+  ],
+  "image_size": 224,
+  "resize_mode": "pad",
+  "mean": [
+    0.485,
+    0.456,
+    0.406
+  ],
+  "std": [
+    0.229,
+    0.224,
+    0.225
+  ],
+  "pretrained_initialization": "torchvision ResNet18_Weights.DEFAULT",
+  "dataset_identifier": "dragonintelligence/CIFAKE-image-dataset",
+  "dataset_revision": "6eebd6090fe3c0d9d44f899a25f0a34e3c2dad31",
+  "seed": 42,
+  "epochs_completed": 8,
+  "best_checkpoint_epoch": 6,
+  "best_validation_metric": {
+    "name": "validation_loss",
+    "value": 0.13500176787376403
+  },
+  "validation_accuracy": 0.96,
+  "training_timestamp_utc": "2026-11-24T12:25:47.712636+00:00",
+  "run_id": "20261124T122547712607Z",
+  "training_device": "cuda",
+  "gpu_name": "NVIDIA GeForce RTX 4050 Laptop GPU",
+  "decision_thresholds": {
+    "real_max_ai_score": 0.2519899904727936,
+    "ai_min_ai_score": 0.9840081930160522,
+    "max_class_error_rate_target": 0.01,
+    "validation_real_false_positive_rate": 0.01,
+    "validation_ai_generated_false_negative_rate": 0.01,
+    "validation_coverage": 0.825,
+    "validation_uncertain_count": 35,
+    "validation_samples": 200,
+    "validation_decision_matrix": {
+      "true_labels": [
+        "REAL",
+        "AI_GENERATED"
+      ],
+      "predicted_labels": [
+        "REAL",
+        "AI_GENERATED",
+        "UNCERTAIN"
+      ],
+      "rows_true_columns_predicted": [
+        [
+          93,
+          1,
+          6
+        ],
+        [
+          1,
+          70,
+          29
+        ]
+      ]
+    },
+    "calibrated_at_utc": "2026-11-24T12:47:31.846580+00:00",
+    "method": "maximize validation coverage subject to per-class error-rate targets; softmax scores are uncalibrated"
+  }
+}

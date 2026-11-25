@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101522">
+  <title>AI Content Detection · Multimodal Fake Content Detector</title>
+  <style>
+    :root{color-scheme:dark;--bg:#101522;--panel:#191f30;--muted:#aab3c8;--ink:#f4f6fb;--accent:#92e6c4;--line:#30394d;--warn:#ffd78d}
+    *{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 15% 0,#263650 0,transparent 45%),var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+    main{width:min(100% - 32px,920px);margin:0 auto;padding:56px 0 40px}.eyebrow{color:var(--accent);font-size:.78rem;font-weight:750;letter-spacing:.14em;text-transform:uppercase}h1{max-width:760px;margin:10px 0;font-size:clamp(2rem,6vw,3.35rem);line-height:1.08;letter-spacing:-.04em}h2{margin:0;font-size:1.16rem}.intro{max-width:700px;color:var(--muted);margin:12px 0 28px}.status{display:flex;align-items:center;gap:10px;padding:12px 15px;margin:0 0 18px;border:1px solid var(--line);border-radius:12px;background:#171d2b;color:var(--muted)}.dot{width:9px;height:9px;border-radius:50%;background:#ffbd62;box-shadow:0 0 0 4px #ffbd6222}.dot.ready{background:var(--accent);box-shadow:0 0 0 4px #92e6c422}
+    .card{display:grid;grid-template-columns:1.15fr .85fr;gap:24px;padding:24px;border:1px solid var(--line);border-radius:18px;background:#191f30eF;box-shadow:0 24px 80px #0003}.drop{min-height:330px;display:grid;place-items:center;text-align:center;padding:24px;border:1.5px dashed #56627b;border-radius:14px;background:#141a27;transition:.18s}.drop.hover{border-color:var(--accent);background:#1a2a2b}.drop-content{max-width:320px}.icon{font-size:2.1rem}.drop p{color:var(--muted);margin:7px 0 18px}.actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}button,.button{border:0;border-radius:10px;background:var(--accent);color:#11201c;padding:11px 16px;font:inherit;font-weight:700;cursor:pointer}button.secondary{background:#2a3346;color:var(--ink);border:1px solid var(--line)}button:disabled{opacity:.45;cursor:not-allowed}input[type=file]{position:absolute;clip:rect(0,0,0,0);clip-path:inset(50%);width:1px;height:1px;overflow:hidden;white-space:nowrap}input[type=file]:focus-visible+label{outline:3px solid var(--warn);outline-offset:3px}.preview{display:none;max-width:100%;max-height:250px;object-fit:contain;border-radius:10px;margin:0 auto 12px}.filename{display:block;max-width:100%;overflow-wrap:anywhere;color:var(--muted);margin-bottom:12px}.result{min-height:330px;border:1px solid var(--line);border-radius:14px;padding:22px;background:#141a27}.result-label{display:inline-flex;padding:7px 11px;border-radius:99px;background:#2a3346;color:var(--muted);font-weight:800;letter-spacing:.04em}.result-label.real{background:#174737;color:#b4f5d7}.result-label.ai{background:#503725;color:#ffdda9}.result-label.uncertain{background:#453d62;color:#e2d5ff}.score{font-size:2rem;font-weight:760;margin:18px 0 2px}.small,.warning{font-size:.88rem;color:var(--muted)}.warning{padding:11px 12px;border-left:2px solid var(--warn);background:#292519;margin-top:20px}.error{color:#ffb4ae;margin-top:15px}.busy{color:var(--accent);min-height:24px;margin-top:12px}footer{color:var(--muted);font-size:.84rem;margin-top:18px}footer a{color:var(--accent)}
+    .modes{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 18px}.modes button.active{background:var(--accent);color:#11201c}.mode-panel{display:none}.mode-panel.active{display:block}.text-card{display:grid;gap:16px;padding:24px;border:1px solid var(--line);border-radius:18px;background:#191f30eF}.text-card textarea{width:100%;min-height:250px;resize:vertical;padding:14px;border:1px solid var(--line);border-radius:12px;background:#141a27;color:var(--ink);font:inherit}.counts{display:flex;gap:18px;color:var(--muted);font-size:.9rem}.text-result,.combined-result{padding:18px;border:1px solid var(--line);border-radius:12px;background:#141a27;min-height:100px}.combined-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.combined-note{color:var(--warn);font-weight:700}@media(max-width:700px){main{padding-top:34px}.card{grid-template-columns:1fr;padding:14px}.drop,.result{min-height:270px}.result{min-height:210px}.combined-grid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <main>
+    <div class="eyebrow">AI-Based Multimodal Fake Content Detector</div>
+    <h1>Image and Text Detection</h1>
+    <p class="intro">Analyze an image, a text sample, or run both independent detectors side by side. These experimental outputs are estimates, not proof of authorship or authenticity.</p>
+    <div class="status" role="status" aria-live="polite"><span id="statusDot" class="dot"></span><span id="modelStatus">Checking model readiness…</span></div>
+    <nav class="modes" aria-label="Detection mode">
+      <button class="mode-button active" data-mode="image" type="button">Image detection</button>
+      <button class="mode-button secondary" data-mode="text" type="button">Text detection</button>
+      <button class="mode-button secondary" data-mode="combined" type="button">Image + text</button>
+    </nav>
+    <section id="imageMode" class="card mode-panel active" aria-label="Image analysis">
+      <div id="drop" class="drop">
+        <div class="drop-content">
+          <img id="preview" class="preview" alt="Selected image preview">
+          <div id="dropIcon" class="icon" aria-hidden="true">＋</div>
+          <h2>Choose an image</h2>
+          <p>Browse for an image or drag and drop it here. Maximum file size: 10 MB.</p>
+          <span id="filename" class="filename">No image selected</span>
+          <div class="actions">
+            <input id="file" type="file" accept="image/*">
+            <label class="button" for="file">Select image</label>
+            <button id="analyze" type="button" disabled>Analyze image</button>
+          </div>
+          <div id="busy" class="busy" aria-live="polite"></div>
+          <div id="error" class="error" role="alert"></div>
+        </div>
+      </div>
+      <div class="result" aria-live="polite">
+        <h2>Analysis result</h2>
+        <p id="resultHint" class="small">Your result will appear here after analysis.</p>
+        <span id="resultLabel" class="result-label">WAITING FOR ANALYSIS</span>
+        <div id="score" class="score">—</div>
+        <div id="scoreNote" class="small">No prediction has been made.</div>
+        <div id="warning" class="warning">Experimental only. A model score is not proof of authenticity, and this model may not generalize to images outside its training data.</div>
+      </div>
+    </section>
+    <section id="textMode" class="text-card mode-panel" aria-label="Text analysis">
+      <div><h2>Analyze text</h2><p class="small">Paste English text to receive an experimental HC3 QA-domain estimate.</p></div>
+      <label for="textInput">Text to analyze</label><textarea id="textInput" maxlength="50000" placeholder="Paste an essay, paragraph, article or response (minimum 5 words)…"></textarea>
+      <div class="counts"><span><span id="wordCount">0</span> words</span><span><span id="charCount">0</span> / 50,000 characters</span></div>
+      <div class="actions"><button id="analyzeText" type="button">Analyze text</button><button id="clearText" class="secondary" type="button">Clear</button></div>
+      <div id="textBusy" class="busy" aria-live="polite"></div><div id="textError" class="error" role="alert"></div>
+      <div id="textResult" class="text-result" aria-live="polite">Text result will appear here.</div>
+    </section>
+    <section id="combinedMode" class="text-card mode-panel" aria-label="Independent image and text analysis">
+      <div><h2>Image + text analysis</h2><p class="small">The two existing detectors run independently; their outputs are displayed side by side.</p></div>
+      <label>Image file <input id="combinedFile" type="file" accept="image/*" style="display:block;margin-top:8px"></label>
+      <img id="combinedPreview" class="preview" alt="Combined mode image preview">
+      <label for="combinedText">Associated caption or description</label><textarea id="combinedText" maxlength="50000" placeholder="Enter the associated text…"></textarea>
+      <div class="actions"><button id="analyzeCombined" type="button">Analyze together</button></div>
+      <div id="combinedBusy" class="busy" aria-live="polite"></div><div id="combinedError" class="error" role="alert"></div>
+      <div class="combined-grid"><div id="combinedImageResult" class="combined-result">Image analysis will appear here.</div><div id="combinedTextResult" class="combined-result">Text analysis will appear here.</div></div>
+      <p class="combined-note">PRELIMINARY COMBINED ASSESSMENT – NOT A TRAINED FUSION MODEL</p>
+      <div id="agreement" class="small">Agreement or disagreement will be summarized after analysis.</div>
+    </section>
+    <footer>Images are sent only to this local FastAPI server at <code>127.0.0.1</code>. <a href="/docs">API documentation</a>.</footer>
+  </main>
+  <script>
+    const fileInput=document.querySelector('#file'), drop=document.querySelector('#drop'), preview=document.querySelector('#preview'), filename=document.querySelector('#filename'), analyze=document.querySelector('#analyze');
+    const errorBox=document.querySelector('#error'), busy=document.querySelector('#busy'), statusText=document.querySelector('#modelStatus'), statusDot=document.querySelector('#statusDot');
+    let selected=null, previewUrl=null, ready=false, maxUploadBytes=10*1024*1024;
+    let textReady=false;
+    document.querySelectorAll('.mode-button').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('.mode-button').forEach(b=>{b.classList.toggle('active',b===button);b.classList.toggle('secondary',b!==button)});document.querySelectorAll('.mode-panel').forEach(p=>p.classList.toggle('active',p.id===`${button.dataset.mode}Mode`));}));
+    async function refreshStatus(){try{const [r,tr]=await Promise.all([fetch('/model-status'),fetch('/text-model-status')]);const s=await r.json(),ts=await tr.json();ready=Boolean(s.ready_for_inference);textReady=Boolean(ts.ready_for_inference);maxUploadBytes=Number(s.max_upload_bytes)||maxUploadBytes;document.querySelector('.drop-content>p').textContent=`Browse for an image or drag and drop it here. Maximum file size: ${(maxUploadBytes/1024/1024).toFixed(1)} MB.`;statusDot.classList.toggle('ready',ready);const activeText=ts.model_name?`${ts.model_name} · ${ts.model_version||ts.selected_backend}`:(textReady?'ready':'not trained');statusText.textContent=`Image: ${ready?'ready':'not trained'} · Text: ${activeText}`;analyze.disabled=!selected||!ready;}catch{statusText.textContent='Could not reach the local API.';ready=false;textReady=false;analyze.disabled=true;}}
+    function choose(file){errorBox.textContent='';selected=null;analyze.disabled=true;document.querySelector('#resultHint').textContent='Your result will appear here after analysis.';document.querySelector('#resultLabel').textContent='WAITING FOR ANALYSIS';document.querySelector('#resultLabel').className='result-label';document.querySelector('#score').textContent='—';document.querySelector('#scoreNote').textContent='No prediction has been made.';if(!file){filename.textContent='No image selected';preview.style.display='none';document.querySelector('#dropIcon').style.display='block';return;}if(!file.type.startsWith('image/')){errorBox.textContent='Choose a supported image file.';return;}if(file.size>maxUploadBytes){errorBox.textContent=`This image is larger than ${(maxUploadBytes/1024/1024).toFixed(1)} MB.`;return;}selected=file;filename.textContent=file.name;if(previewUrl)URL.revokeObjectURL(previewUrl);previewUrl=URL.createObjectURL(file);preview.src=previewUrl;preview.style.display='block';document.querySelector('#dropIcon').style.display='none';analyze.disabled=!ready;}
+    fileInput.addEventListener('change',()=>choose(fileInput.files[0]));drop.addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('hover');});drop.addEventListener('dragleave',()=>drop.classList.remove('hover'));drop.addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('hover');choose(e.dataTransfer.files[0]);});
+    analyze.addEventListener('click',async()=>{if(!selected||!ready)return;errorBox.textContent='';busy.textContent='Analyzing image…';analyze.disabled=true;try{const data=new FormData();data.append('file',selected);const response=await fetch('/api/v1/predict/image',{method:'POST',body:data});const body=await response.json();if(!response.ok)throw new Error(body.detail||'The image could not be analyzed.');const label=body.predicted_label;const badge=document.querySelector('#resultLabel');badge.textContent=label==='AI_GENERATED'?'AI-GENERATED':label;badge.className='result-label '+(label==='AI_GENERATED'?'ai':label==='UNCERTAIN'?'uncertain':'real');document.querySelector('#resultHint').textContent=`${body.architecture} · ${body.model_version} · ${body.inference_device||'device unknown'} · ${Number(body.processing_time_ms||0).toFixed(1)} ms`;document.querySelector('#score').textContent=label==='UNCERTAIN'?'UNCERTAIN':`${(body.score*100).toFixed(1)}%`;const scores=body.class_scores||{};document.querySelector('#scoreNote').textContent=`Uncalibrated softmax scores · REAL ${(100*(scores.REAL||0)).toFixed(1)}% · AI-GENERATED ${(100*(scores.AI_GENERATED||0)).toFixed(1)}%`;document.querySelector('#warning').textContent=body.warning||'Experimental estimate; not proof of authenticity.';}catch(e){errorBox.textContent=e.message||'Could not analyze this image.';if(e.message.includes('not ready')){ready=false;await refreshStatus();}}finally{busy.textContent='';analyze.disabled=!selected||!ready;}});
+    const textInput=document.querySelector('#textInput');
+    function countText(input,wordId,charId){document.querySelector(wordId).textContent=input.value.trim()?input.value.trim().split(/\s+/).length:0;document.querySelector(charId).textContent=input.value.length;}
+    textInput.addEventListener('input',()=>countText(textInput,'#wordCount','#charCount'));
+    document.querySelector('#clearText').addEventListener('click',()=>{textInput.value='';countText(textInput,'#wordCount','#charCount');document.querySelector('#textResult').textContent='Text result will appear here.';document.querySelector('#textError').textContent='';});
+    async function postText(value){const response=await fetch('/api/v1/predict/text',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:value})});const body=await response.json();if(!response.ok)throw new Error(body.detail||'Text analysis failed.');return body;}
+    function showText(body,target){target.innerHTML=`<strong>${body.label}</strong><p>${body.model_name}${body.model_version?` · ${body.model_version}`:''} · ${body.processing_time_ms.toFixed(1)} ms · ${body.input_word_count} words · ${body.chunk_count} chunk(s)</p><p>Human ${(100*body.class_scores.HUMAN_WRITTEN).toFixed(1)}% · AI-generated ${(100*body.class_scores.AI_GENERATED).toFixed(1)}%</p><p><small>Score type: ${body.confidence_type||body.score_type} · Decision: ${body.decision_status||body.label}</small></p><small>${body.warning}</small>`;}
+    document.querySelector('#analyzeText').addEventListener('click',async()=>{document.querySelector('#textError').textContent='';document.querySelector('#textBusy').textContent='Analyzing text…';try{if(!textReady)throw new Error('Text model is not ready. Train the text baseline first.');showText(await postText(textInput.value),document.querySelector('#textResult'));}catch(e){document.querySelector('#textError').textContent=e.message;}finally{document.querySelector('#textBusy').textContent='';}});
+    const combinedFile=document.querySelector('#combinedFile'), combinedPreview=document.querySelector('#combinedPreview');
+    combinedFile.addEventListener('change',()=>{const f=combinedFile.files[0];if(!f){combinedPreview.style.display='none';return;}combinedPreview.src=URL.createObjectURL(f);combinedPreview.style.display='block';});
+    document.querySelector('#analyzeCombined').addEventListener('click',async()=>{const file=combinedFile.files[0],value=document.querySelector('#combinedText').value;document.querySelector('#combinedError').textContent='';document.querySelector('#combinedBusy').textContent='Running independent analyses…';try{if(!file||!value)throw new Error('Choose an image and enter associated text.');if(!ready||!textReady)throw new Error('Both image and text models must be ready.');const form=new FormData();form.append('file',file);const [ir,tr]=await Promise.all([fetch('/api/v1/predict/image',{method:'POST',body:form}),postText(value)]);const ib=await ir.json();if(!ir.ok)throw new Error(ib.detail||'Image analysis failed.');document.querySelector('#combinedImageResult').innerHTML=`<strong>IMAGE: ${ib.label}</strong><p>REAL ${(100*ib.class_scores.REAL).toFixed(1)}% · AI ${(100*ib.class_scores.AI_GENERATED).toFixed(1)}%</p>`;showText(tr,document.querySelector('#combinedTextResult'));document.querySelector('#agreement').textContent=ib.label==='UNCERTAIN'||tr.label==='UNCERTAIN'?'At least one independent detector is uncertain.':((ib.label==='AI_GENERATED')===(tr.label==='AI_GENERATED')?'The independent detector labels agree.':'The independent detector labels differ.');}catch(e){document.querySelector('#combinedError').textContent=e.message;}finally{document.querySelector('#combinedBusy').textContent='';}});
+    refreshStatus();
+  </script>
+</body>
+</html>

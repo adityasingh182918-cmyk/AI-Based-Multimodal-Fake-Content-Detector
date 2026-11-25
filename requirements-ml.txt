@@ -1,0 +1,6 @@
+# Install this only after selecting the Windows/Python/CUDA combination at pytorch.org/get-started/locally.
+# Install torch and torchvision from the official selector for the chosen Windows/CUDA build.
+numpy
+datasets>=3.3,<5
+tqdm>=4.66
+scikit-learn>=1.7,<2

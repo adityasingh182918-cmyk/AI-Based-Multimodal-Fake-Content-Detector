@@ -1,0 +1,3 @@
+# Install backend runtime and test dependencies from backend/requirements.txt.
+# Optional development tools:
+ruff

@@ -1,0 +1,2 @@
+# Install separately from the Phase 1 CUDA stack; torch and torchvision are selected for Windows hardware.
+transformers>=4.57,<5

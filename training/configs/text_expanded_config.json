@@ -1,0 +1,50 @@
+{
+  "experiment": "phase2_expanded_v1",
+  "seed": 42,
+  "dataset_dir": "data/text/processed/expanded_v1",
+  "dataset_sources": {
+    "hc3": "existing pinned HC3, original split assignments preserved",
+    "mage": "yaful/MAGE@342663f0a2b775455c023f5d36a1341ff0ec5402"
+  },
+  "labels": {
+    "HUMAN_WRITTEN": 0,
+    "AI_GENERATED": 1,
+    "mage_source_mapping": {
+      "0": "AI_GENERATED",
+      "1": "HUMAN_WRITTEN"
+    }
+  },
+  "svm": {
+    "output": "models/text_detector/svm_expanded_v1.joblib",
+    "word_ngrams": [1, 2],
+    "character_analyzer": "char_wb",
+    "character_ngrams": [3, 5],
+    "minimum_document_frequency": 2,
+    "word_feature_limit": 150000,
+    "character_feature_limit": 200000,
+    "class_weight": "balanced",
+    "calibration": "CalibratedClassifierCV(cv=3)",
+    "selection_metric": "expanded validation macro-F1"
+  },
+  "transformer": {
+    "architecture": "DistilBERT sequence classification",
+    "initial_checkpoint": "models/text_detector/transformer/distilbert_hc3_v1",
+    "output": "models/text_detector/distilbert_expanded_v1",
+    "epochs": 3,
+    "batch_size": 8,
+    "gradient_accumulation": 2,
+    "maximum_training_tokens": 256,
+    "learning_rate": 0.00001,
+    "optimizer": "AdamW",
+    "precision": "CUDA autocast fp16",
+    "device": "cuda",
+    "early_stopping": "validation macro-F1, patience 2",
+    "inference_overflow": "overlapping windows, stride 32, dynamic padding, attention-mask weighted"
+  },
+  "evaluation_policy": {
+    "validation": "model selection and thresholds only",
+    "test": "one-time evaluation only; no hyperparameter/threshold tuning",
+    "ood": ["MAGE GPT-4", "GRADTEX", "Beemo"],
+    "ood_use": "frozen evaluation only; never train or calibrate on these rows"
+  }
+}
