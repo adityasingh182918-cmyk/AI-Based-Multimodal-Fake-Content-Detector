@@ -4,7 +4,7 @@
 
 ## Checkpoint and API audit
 
-The FastAPI default is `models/image_detector/resnet18_cifake_aug_v1_calibrated_strict.pt`; `IMAGE_MODEL_CHECKPOINT` overrides it. The default path was present and loaded by the diagnostic. Four of four `.pt` checkpoints passed the existing ResNet-18/class-order loader:
+At the time of this historical checkpoint audit, FastAPI defaulted to `models/image_detector/resnet18_cifake_aug_v1_calibrated_strict.pt`; `IMAGE_MODEL_CHECKPOINT` overrides it. On 2026-11-25, a repeat report from the running unified app showed the strict checkpoint still active and reproducing the user's room-photo false positive. The source default has since been changed to `models/image_detector/resnet18_realworld_v1.pt`; restart the server for it to take effect. Four of four `.pt` checkpoints passed the existing ResNet-18/class-order loader:
 
 | Checkpoint | Role | Input preprocessing | Validation raw argmax (n=200) | REAL FPR | AI FNR | Abstentions |
 |---|---|---|---:|---:|---:|---:|
@@ -16,6 +16,17 @@ The FastAPI default is `models/image_detector/resnet18_cifake_aug_v1_calibrated_
 Accuracy/FPR/FNR in the table use raw argmax predictions on the existing CIFAKE validation split. For the strict checkpoint, the stored abstention policy covered 165/200 validation examples; thresholded predictions are separately recorded in the JSON report. Image `class_scores` are softmax outputs, not calibrated probabilities.
 
 ## Supplied real-photo failures
+
+### Repeat false positive from the running unified app (2026-11-25)
+
+The browser screenshot's room photo was available locally as `WhatsApp Image 2026-11-25 at 02.08.13.jpeg`. The live `/api/v1/status` response confirmed that the process on port 8000 had loaded `resnet18_cifake_aug_v1_calibrated_strict.pt`. Replaying the same file through both saved checkpoints on CPU produced:
+
+| Checkpoint | Output | REAL score | AI_GENERATED score |
+|---|---|---:|---:|
+| `resnet18_cifake_aug_v1_calibrated_strict.pt` (then-running default) | AI_GENERATED | 0.000078 | 0.999922 |
+| `resnet18_realworld_v1.pt` (new source default) | REAL | 0.687643 | 0.312357 |
+
+This reproduces the screenshot's confident AI false positive and identifies the immediate mismatch: the running app used the strict CIFAKE-only checkpoint, while the existing real-world checkpoint classified this specific image as REAL. `backend/app/main.py` now defaults to the real-world checkpoint; model weights, thresholds, and preprocessing were not changed. This is a sample-specific correction, not evidence of general camera-photo accuracy. The currently running server process must be restarted before its loaded checkpoint changes.
 
 All four inputs were JPEGs. Their original dimensions were 1200×1600 for samples 01–02 and 900×1600 for samples 03–04. Every checkpoint predicted `AI_GENERATED` for every sample. On the FastAPI default strict checkpoint, AI softmax scores were:
 

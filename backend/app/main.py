@@ -36,7 +36,7 @@ app = FastAPI(
     version="0.2.0",
     lifespan=lifespan,
 )
-_default_checkpoint = Path(__file__).resolve().parents[2] / "models" / "image_detector" / "resnet18_cifake_aug_v1_calibrated_strict.pt"
+_default_checkpoint = Path(__file__).resolve().parents[2] / "models" / "image_detector" / "resnet18_realworld_v1.pt"
 _max_upload_bytes = int(os.getenv("IMAGE_MAX_UPLOAD_BYTES", str(10 * 1024 * 1024)))
 if _max_upload_bytes < 1:
     raise RuntimeError("IMAGE_MAX_UPLOAD_BYTES must be a positive integer")

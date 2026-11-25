@@ -6,7 +6,7 @@
 
 ### Image detector
 
-- FastAPI defaults to `models/image_detector/resnet18_cifake_aug_v1_calibrated_strict.pt`; `IMAGE_MODEL_CHECKPOINT` can override it. The checkpoint identifies ResNet-18, `REAL` index 0, `AI_GENERATED` index 1, 224-pixel input, ImageNet mean/std, and aspect-preserving square padding.
+- FastAPI now defaults to `models/image_detector/resnet18_realworld_v1.pt`; `IMAGE_MODEL_CHECKPOINT` can override it. The checkpoint identifies ResNet-18, `REAL` index 0, `AI_GENERATED` index 1, 224-pixel input, ImageNet mean/std, and aspect-preserving square padding. The prior strict CIFAKE checkpoint remains available as an explicit override.
 - Inference applies EXIF orientation, converts to RGB, and runs the checkpoint-matched transform. Training also applies EXIF orientation and RGB conversion. I found no class-order or missing-orientation bug.
 - The local CIFAKE manifest has 2,000 samples, and inspection confirmed all 2,000 files are 32×32 JPEGs; the model resizes/pads these small images to 224×224. CIFAKE's real class comes from CIFAR-10, while its generated class comes from Stable Diffusion 1.4. This is a verified resolution/source mismatch with phone photographs, not proof of the exact failure cause.
 - On the same 200-image CIFAKE test split, the strict augmented checkpoint had REAL FPR 0.04 and AI FNR 0.01; the earlier baseline had REAL FPR 0.08 and AI FNR 0.01. Neither test includes camera photographs. Lowering thresholds alone cannot establish camera-domain performance.

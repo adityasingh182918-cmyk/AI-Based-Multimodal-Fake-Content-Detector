@@ -1,27 +1,44 @@
-# Python environments and caches
+# Python environments, bytecode, and test/tool caches
 .venv/
 venv/
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 .pytest_cache/
+**/.pytest_cache/
 .ruff_cache/
+**/.ruff_cache/
+.mypy_cache/
+**/.mypy_cache/
+.tox/
 
 # Jupyter
 .ipynb_checkpoints/
+**/.ipynb_checkpoints/
 
-# Environment secrets (keep .env.example tracked)
+# Hugging Face and dataset caches (data itself keeps its existing rules below)
+hf-cache/
+**/hf-cache/
+.cache/
+**/.cache/
+.huggingface/
+**/.huggingface/
+datasets_cache/
+**/datasets_cache/
+
+# Local environment secrets (keep the documented template tracked)
 .env
 .env.*
 !.env.example
 
-# Node and frontend builds
+# Node and frontend build output
 node_modules/
 frontend/dist/
 dist/
 build/
 
-# Models, checkpoints, and downloaded/generated data
+# Model/checkpoint tracking policy: intentionally unchanged
 *.pt
 *.pth
 *.ckpt
@@ -29,18 +46,25 @@ build/
 *.onnx
 *.h5
 *.keras
+
+# Existing dataset tracking policy: retain only the image data README
 /data/*
 !/data/image/
 /data/image/*
 !/data/image/README.md
 
-# Logs and temporary output
+# Logs, temporary files, and generated local outputs
 *.log
 *.tmp
+*.temp
+*.bak
+*.swp.tmp
 logs/
 /training/reports/
 tmp/
 temp/
+output/
+outputs/
 
 # IDE and operating system files
 .vscode/
