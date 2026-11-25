@@ -41,7 +41,7 @@ The unified app reuses the Phase 1 and Phase 2 detectors. Its current multimodal
 
 The image pipeline uses a ResNet-18 classifier with RGB input, 224-pixel preprocessing, aspect-preserving padding, and ImageNet normalization. Training supports pretrained initialization, augmentation, validation-loss checkpoint selection, and a held-out test workflow. Inference reads the selected local checkpoint and its metadata; the current default is `models/image_detector/resnet18_realworld_v1.pt`. Set `IMAGE_MODEL_CHECKPOINT` to select a different checkpoint explicitly. The real-world checkpoint includes four user-labelled REAL supplemental photos, so its predictions on those examples are not independent evaluation evidence.
 
-The main reproducible dataset sample is a balanced 2,000-image CIFAKE subset: 1,600 training, 200 validation, and 200 test images. On the 200-image CIFAKE test split, the augmented checkpoint recorded 0.975 accuracy, 0.975 macro-F1, 0.04 REAL false-positive rate, and 0.01 AI false-negative rate. These are benchmark-specific results on low-resolution CIFAKE images, not camera-photo performance. A later candidate trained with four user-labeled REAL photos tied the strict checkpoint's test accuracy and was not promoted.
+The main reproducible dataset sample is a balanced 2,000-image CIFAKE subset: 1,600 training, 200 validation, and 200 test images. On the 200-image CIFAKE test split, the augmented and strict checkpoints recorded 0.975 accuracy, 0.975 macro-F1, 0.04 REAL false-positive rate, 0.01 AI false-negative rate, and 0.9955 ROC-AUC. A later candidate trained with four user-labeled REAL photos also recorded 0.975 accuracy and 0.9958 ROC-AUC on that same test split; the 0.0003 AUC difference does not establish an improvement and the candidate was not promoted. These are benchmark-specific results on low-resolution CIFAKE images, not camera-photo performance.
 
 See [Phase 1 workflow and evidence](docs/phase1.md), [implementation plan](PHASE1_IMPLEMENTATION_PLAN.md), and [real-photo fine-tuning report](PHASE1_RETRAINING_REPORT.md).
 
@@ -49,7 +49,24 @@ See [Phase 1 workflow and evidence](docs/phase1.md), [implementation plan](PHASE
 
 Text options include word/character TF-IDF with a calibrated Linear SVM and fine-tuned DistilBERT checkpoints. Original HC3-derived checkpoints and expanded HC3+MAGE candidates are kept separately. The service can be selected with `TEXT_MODEL_BACKEND` (`baseline`, `svm_expanded`, `transformer`, or `transformer_expanded`) and can report its active backend through the status API.
 
-On the same 5,727-row expanded HC3+MAGE test split, expanded SVM achieved 0.7503 accuracy / 0.7502 macro-F1 and expanded DistilBERT 0.8579 / 0.8524. These mixed-split scores do not establish source-independent performance. On frozen MAGE GPT-4 out-of-domain data, expanded DistilBERT macro-F1 was 0.7476 with human false-positive rate 0.4580. GRADTEX results are weaker, and some evaluated labels represent machine involvement rather than wholly AI-authored text. No expanded candidate was promoted as a generally reliable authorship detector.
+The text evaluations cover different test scopes; their scores should not be compared as if they came from the same population. Selected results are summarized below. `FPR` is the human-text false-positive rate; `FNR` is the AI or machine-involvement false-negative rate, as defined by each dataset.
+
+| Evaluation scope | Model | Accuracy | Macro-F1 | Other reported measures |
+|---|---|---:|---:|---|
+| HC3 in-domain test, n=531 | HC3 TF-IDF/SVM | 0.9680 | 0.9679 | Weighted-F1 0.9680; AI ROC-AUC 0.9951; confusion matrix `[[242, 11], [6, 272]]` |
+| HC3 in-domain test, n=531 | HC3 DistilBERT | 0.9435 | 0.9431 | Weighted-F1 0.9433; ROC-AUC 0.9945; thresholded coverage 93.4%, covered accuracy 98.6% |
+| HC3 source holdout: train Reddit, test Wikipedia, n=263 | SVM | 0.6236 | 0.5327 | Weighted-F1 0.5507; human recall 0.2000; AI recall 0.9790; ROC-AUC 0.8507; abstention coverage 65.8%, covered accuracy 0.7399 |
+| Mixed HC3+MAGE held-out test, n=5,727 | Expanded SVM | 0.7503 | 0.7502 | Human FPR 0.1810; AI FNR 0.3056 |
+| Mixed HC3+MAGE held-out test, n=5,727 | Expanded DistilBERT | 0.8579 | 0.8524 | Human FPR 0.2577; AI FNR 0.0481 |
+| MAGE GPT-4 OOD, n=1,562 | Expanded SVM | 0.6677 | 0.6673 | Human FPR 0.2795; AI FNR 0.3825 |
+| MAGE GPT-4 OOD, n=1,562 | Expanded DistilBERT | 0.7612 | 0.7476 | Human FPR 0.4580; AI FNR 0.0300 |
+| GRADTEX Test C, n=3,529 | Expanded SVM | 0.5285 | 0.4812 | Human FPR 0.1690; machine-involvement FNR 0.7735 |
+| GRADTEX Test C, n=3,529 | Expanded DistilBERT | 0.5551 | 0.5369 | Human FPR 0.2462; machine-involvement FNR 0.6433 |
+| GRADTEX selected paired Test B, n=2,642 | Expanded SVM | 0.5443 | 0.4998 | Human FPR 0.1575; machine-involvement FNR 0.7540 |
+| GRADTEX selected paired Test B, n=2,642 | Expanded DistilBERT | 0.6219 | 0.6154 | Human FPR 0.2483; machine-involvement FNR 0.5079 |
+| Beemo expert-edited AI-origin probe, n=656 | Expanded SVM / DistilBERT | — | — | AI recall 0.5534 / 0.8354; positive-only slice, so two-class accuracy/F1/FPR are not applicable |
+
+The expanded HC3+MAGE test is a mixed held-out split, not a fully source-independent test. GRADTEX measures machine-involved writing (`MIX`), which does not necessarily mean fully AI-authored text; it also derives from MAGE. Beemo includes AI-origin positives only. Other API-matched diagnostic runs use different chunk/window aggregation and therefore report different values from earlier evaluator outputs; detailed values are in [additional text diagnostics](docs/phase2_additional_diagnostics.md). Expanded validation abstention thresholds collapsed to `[0, 1]`, yielding no useful coverage at the configured 5% conditional error target. Temperature scaling of expanded DistilBERT improved validation Brier score / NLL / ECE from `0.11605 / 0.48195 / 0.11240` to `0.10685 / 0.34975 / 0.09806`, but did not resolve its out-of-domain false-positive risk. No expanded candidate was promoted as a generally reliable authorship detector.
 
 See [Phase 2 workflow and results](docs/phase2.md), [dataset notes](docs/phase2_datasets.md), [evaluation report](PHASE2_EVALUATION_REPORT.md), and [model card](PHASE2_MODEL_CARD.md).
 
@@ -113,7 +130,7 @@ Model weights are local artifacts and are not automatically included in a Git ch
 
 ## Experimental results and evaluation
 
-Evaluation scripts keep validation and test roles separate, and reports document dataset-specific results. Image metrics above use the same 200-image CIFAKE test split. Text metrics above distinguish the mixed expanded test from source-shifted diagnostics. Phase 3 has no fusion accuracy, precision, recall, F1, or generalization result because no trained fusion checkpoint was evaluated. Software test passes validate code behavior and do not establish model quality.
+Across the reports, evaluation measures include accuracy, class-wise precision and recall, macro/weighted F1, false-positive and false-negative rates, ROC-AUC, confusion matrices, selective coverage and covered accuracy, calibration Brier score/NLL/ECE, and training/validation loss. Image metrics above use the same 200-image CIFAKE test split. The strict checkpoint's selective test result was 85% coverage (170/200) and 100% accuracy on covered examples; with abstentions counted as incorrect, accuracy was 85%. The candidate image model's score is uncalibrated softmax. A validation-only sensitivity analysis found accuracy fell to 0.825 under mild Gaussian blur (radius 0.5), versus 0.960 on the unmodified validation images; this is a transformed view of the same CIFAKE validation set, not an independent camera-photo test. Text metrics distinguish in-domain HC3, a source holdout, a mixed expanded split, and external diagnostics. Phase 3 has no fusion accuracy, precision, recall, F1, or generalization result because no trained fusion checkpoint was evaluated. Software test passes validate code behavior and do not establish model quality.
 
 For detailed methodology and caveats, consult the phase reports linked above, [Phase 2 experiment log](PHASE2_EXPERIMENT_LOG.md), and [project progress](PROJECT_PROGRESS.md).
 
