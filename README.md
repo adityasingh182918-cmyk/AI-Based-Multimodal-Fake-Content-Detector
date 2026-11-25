@@ -187,7 +187,14 @@ For inference, install the dependencies for the chosen model, ensure its local c
 
 ## Team
 
-Team member names and contributions were not specified in the project material reviewed for this README. Add verified names and roles here before publication; none are invented in this document.
+The project team comprises:
+
+- **Aditya Singh** — S24CSEU2200
+- **Ronit Jaiswal** — S24CSEU2198
+- **Yuvraj Singh** — S24CSEU2182
+- **Harsh Singh Chauhan** — S24CSEU2218
+
+The project work covers the Phase 1 image detector, Phase 2 text detector, Phase 3 rule-based multimodal analysis, unified FastAPI/frontend integration, and evaluation/documentation. Individual task assignments were not provided, so this README does not attribute specific components to individual members.
 
 ## Limitations
 
